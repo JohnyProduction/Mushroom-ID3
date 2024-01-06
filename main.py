@@ -12,6 +12,11 @@ from sklearn.tree import plot_tree
 from sklearn.datasets import make_classification
 from sklearn.svm import SVC
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import roc_curve, auc
+import seaborn as sns
+
 # Load mushroom dataset
 url = "https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data"
 data = pd.read_csv(url, header=None)
@@ -42,10 +47,13 @@ X = data.drop('class', axis=1)
 y = data['class']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
+"""## TREE"""
+
 # Build a Decision Tree model
 clf = tree.DecisionTreeClassifier(criterion="entropy", max_depth=2)
 clf = clf.fit(X_train, y_train)
 
+#Print tree plot
 tree.plot_tree(clf)
 
 # Plot the decision tree
@@ -67,4 +75,90 @@ print(cm)
 # Confusion matrix plot
 disp_tree = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=np.unique(y_test))
 disp_tree.plot()
+plt.show()
+
+# Calculate ROC curve and AUC score
+fpr, tpr, thresholds = roc_curve(y_test, clf.predict_proba(X_test)[:, 1])
+roc_auc = auc(fpr, tpr)
+
+# Plot ROC curve and AUC score
+plt.figure(figsize=(10, 8))
+plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'AUC = {roc_auc:.2f}')
+plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver Operating Characteristic (ROC) Curve')
+plt.legend(loc='lower right')
+plt.show()
+
+"""## FOREST"""
+
+# Create a RandomForestClassifier
+rf_classifier = RandomForestClassifier(random_state=42)
+
+# Train the classifier on the training set
+rf_classifier.fit(X_train, y_train)
+
+# Make predictions on the testing set
+y_pred = rf_classifier.predict(X_test)
+
+# Evaluate the model accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy:.2f}")
+
+# Plot feature importances
+feature_importances = rf_classifier.feature_importances_
+feature_names = X.columns
+
+# Create a DataFrame with feature names and their importances
+feature_importance_df = pd.DataFrame({
+    'Feature': feature_names,
+    'Importance': feature_importances
+})
+
+# Sort the DataFrame by importance in descending order
+feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
+
+# Plot the feature importances
+plt.figure(figsize=(12, 8))
+sns.barplot(x='Importance', y='Feature', data=feature_importance_df, palette='viridis')
+plt.title('Random Forest Feature Importances')
+plt.xlabel('Importance')
+plt.ylabel('Feature')
+plt.show()
+
+# Evaluate the model accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy:.2f}")
+
+# Plot confusion matrix
+conf_matrix = confusion_matrix(y_test, y_pred)
+
+plt.figure(figsize=(8, 6))
+sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues',
+            xticklabels=le.classes_, yticklabels=le.classes_)
+plt.title('Confusion Matrix')
+plt.xlabel('Predicted')
+plt.ylabel('True')
+plt.show()
+
+# Get predicted probabilities for the positive class
+y_pred_prob = rf_classifier.predict_proba(X_test)[:, 1]
+
+# Compute ROC curve and AUC
+fpr, tpr, thresholds = roc_curve(y_test, y_pred_prob)
+roc_auc = auc(fpr, tpr)
+
+# Plot ROC curve
+plt.figure(figsize=(8, 6))
+plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'AUC = {roc_auc:.2f}')
+plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver Operating Characteristic (ROC) Curve')
+plt.legend(loc='lower right')
 plt.show()
