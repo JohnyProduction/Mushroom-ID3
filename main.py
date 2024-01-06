@@ -121,7 +121,7 @@ plt.show()
 """## FOREST"""
 
 # Create a RandomForestClassifier
-rf_classifier = RandomForestClassifier(random_state=42)
+rf_classifier = RandomForestClassifier(random_state=42,criterion="gini",max_depth=5)
 
 # Train the classifier on the training set
 rf_classifier.fit(X_train, y_train)
@@ -132,6 +132,16 @@ y_pred = rf_classifier.predict(X_test)
 # Evaluate the model accuracy
 accuracy = accuracy_score(y_test, y_pred)
 print(f"Accuracy: {accuracy:.2f}")
+
+# Visualize each tree in the Random Forest
+n_trees = len(rf_classifier.estimators_)
+fig, axes = plt.subplots(nrows=1, ncols=n_trees, figsize=(4 * n_trees, 4), dpi=100)  # Adjust the figsize parameter
+
+for i in range(n_trees):
+    plot_tree(rf_classifier.estimators_[i], filled=True, feature_names=[f'feature_{i}' for i in range(X_train.shape[1])], class_names=['0', '1'], ax=axes[i])
+    axes[i].set_title(f'Tree {i+1}')
+
+plt.show()
 
 # Plot feature importances
 feature_importances = rf_classifier.feature_importances_
@@ -145,7 +155,7 @@ feature_importance_df = pd.DataFrame({
 
 # Sort the DataFrame by importance in descending order
 feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
-
+print(feature_importance_df)
 # Plot the feature importances
 plt.figure(figsize=(12, 8))
 sns.barplot(x='Importance', y='Feature', data=feature_importance_df, palette='viridis')
@@ -160,7 +170,7 @@ print(f"Accuracy: {accuracy:.2f}")
 
 # Plot confusion matrix
 conf_matrix = confusion_matrix(y_test, y_pred)
-
+print(conf_matrix)
 plt.figure(figsize=(8, 6))
 sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues',
             xticklabels=le.classes_, yticklabels=le.classes_)
@@ -187,3 +197,4 @@ plt.ylabel('True Positive Rate')
 plt.title('Receiver Operating Characteristic (ROC) Curve')
 plt.legend(loc='lower right')
 plt.show()
+
