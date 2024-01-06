@@ -1,6 +1,7 @@
 # Import necessary libraries
 import pandas as pd
 import numpy as np
+import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn import tree
 from sklearn.tree import DecisionTreeClassifier
@@ -15,7 +16,8 @@ from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import roc_curve, auc
-import seaborn as sns
+from sklearn.tree import _tree
+from sklearn.inspection import partial_dependence
 
 # Load mushroom dataset
 url = "https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data"
@@ -91,6 +93,29 @@ plt.xlabel('False Positive Rate')
 plt.ylabel('True Positive Rate')
 plt.title('Receiver Operating Characteristic (ROC) Curve')
 plt.legend(loc='lower right')
+plt.show()
+
+# Sample index for which you want to visualize the decision path
+sample_index = 0
+
+# Get the decision path for the sample
+decision_path = clf.decision_path(X_test.iloc[[sample_index]])
+
+# Extract feature indices from the decision path
+feature_indices = decision_path.indices
+
+# Extract the decision values from the decision path
+node_values = decision_path.data
+
+# Plot the decision path
+plt.figure(figsize=(16, 6))
+plt.imshow(node_values.reshape(1, -1), interpolation='none', cmap='viridis', aspect='auto')
+plt.xticks(range(len(feature_indices)), X.columns[feature_indices], rotation=45, ha='right')
+plt.yticks([0], [sample_index])
+plt.title('Decision Path for Sample')
+plt.xlabel('Feature')
+plt.ylabel('Node')
+plt.colorbar(label='Node Value', orientation='vertical')
 plt.show()
 
 """## FOREST"""
